@@ -2,9 +2,9 @@
 # Simple commands for managing the development container
 
 # Container configuration
-CONTAINER_NAME := claude-dev
+SERVICE_NAME := claude-dev
 DOCKER_COMPOSE := docker-compose
-DOCKER_EXEC := docker exec
+DOCKER_EXEC := docker-compose exec
 
 # Platform detection for SSH forwarding
 UNAME_S := $(shell uname -s)
@@ -109,9 +109,9 @@ rebuild: down build up
 ## Check if container is running
 status:
 	@echo "$(CYAN)Container status:$(RESET)"
-	@if [ "$$(docker ps -q -f name=$(CONTAINER_NAME))" ]; then \
+	@if [ "$$($(DOCKER_COMPOSE) ps -q $(SERVICE_NAME))" ]; then \
 		echo "$(GREEN)✓$(RESET) Container is running"; \
-		$(DOCKER_EXEC) $(CONTAINER_NAME) ps aux | head -5; \
+		$(DOCKER_EXEC) $(SERVICE_NAME) ps aux | head -5; \
 	else \
 		echo "$(RED)✗$(RESET) Container is not running"; \
 	fi
@@ -122,9 +122,9 @@ logs:
 
 ## Attach to running container (foreground)
 attach:
-	@if [ "$$(docker ps -q -f name=$(CONTAINER_NAME))" ]; then \
+	@if [ "$$($(DOCKER_COMPOSE) ps -q $(SERVICE_NAME))" ]; then \
 		echo "$(CYAN)Attaching to container...$(RESET)"; \
-		$(DOCKER_COMPOSE) attach $(CONTAINER_NAME); \
+		$(DOCKER_COMPOSE) attach $(SERVICE_NAME); \
 	else \
 		echo "$(RED)✗$(RESET) Container is not running. Start it with: make up"; \
 		exit 1; \
@@ -135,9 +135,9 @@ shell: bash
 
 ## Open bash shell in container
 bash:
-	@if [ "$$(docker ps -q -f name=$(CONTAINER_NAME))" ]; then \
+	@if [ "$$($(DOCKER_COMPOSE) ps -q $(SERVICE_NAME))" ]; then \
 		echo "$(CYAN)Opening bash shell...$(RESET)"; \
-		$(DOCKER_EXEC) -it $(CONTAINER_NAME) bash; \
+		$(DOCKER_EXEC) $(SERVICE_NAME) bash; \
 	else \
 		echo "$(RED)✗$(RESET) Container is not running. Start it with: make up"; \
 		exit 1; \
@@ -145,9 +145,9 @@ bash:
 
 ## Open fish shell in container
 fish:
-	@if [ "$$(docker ps -q -f name=$(CONTAINER_NAME))" ]; then \
+	@if [ "$$($(DOCKER_COMPOSE) ps -q $(SERVICE_NAME))" ]; then \
 		echo "$(CYAN)Opening fish shell...$(RESET)"; \
-		$(DOCKER_EXEC) -it $(CONTAINER_NAME) fish; \
+		$(DOCKER_EXEC) $(SERVICE_NAME) fish; \
 	else \
 		echo "$(RED)✗$(RESET) Container is not running. Start it with: make up"; \
 		exit 1; \
@@ -155,9 +155,9 @@ fish:
 
 ## Open root shell for debugging
 root:
-	@if [ "$$(docker ps -q -f name=$(CONTAINER_NAME))" ]; then \
+	@if [ "$$($(DOCKER_COMPOSE) ps -q $(SERVICE_NAME))" ]; then \
 		echo "$(CYAN)Opening root shell...$(RESET)"; \
-		$(DOCKER_EXEC) -it -u root $(CONTAINER_NAME) bash; \
+		$(DOCKER_COMPOSE) exec -u root $(SERVICE_NAME) bash; \
 	else \
 		echo "$(RED)✗$(RESET) Container is not running. Start it with: make up"; \
 		exit 1; \
@@ -165,9 +165,9 @@ root:
 
 ## Run Claude Code directly
 claude:
-	@if [ "$$(docker ps -q -f name=$(CONTAINER_NAME))" ]; then \
+	@if [ "$$($(DOCKER_COMPOSE) ps -q $(SERVICE_NAME))" ]; then \
 		echo "$(CYAN)Starting Claude Code...$(RESET)"; \
-		$(DOCKER_EXEC) -it $(CONTAINER_NAME) claude; \
+		$(DOCKER_EXEC) $(SERVICE_NAME) claude; \
 	else \
 		echo "$(RED)✗$(RESET) Container is not running. Start it with: make up"; \
 		exit 1; \
@@ -175,9 +175,9 @@ claude:
 
 ## Run Claude Code /doctor command
 doctor:
-	@if [ "$$(docker ps -q -f name=$(CONTAINER_NAME))" ]; then \
+	@if [ "$$($(DOCKER_COMPOSE) ps -q $(SERVICE_NAME))" ]; then \
 		echo "$(CYAN)Running Claude Code diagnostics...$(RESET)"; \
-		$(DOCKER_EXEC) $(CONTAINER_NAME) claude /doctor; \
+		$(DOCKER_EXEC) $(SERVICE_NAME) claude /doctor; \
 	else \
 		echo "$(RED)✗$(RESET) Container is not running. Start it with: make up"; \
 		exit 1; \
@@ -185,11 +185,11 @@ doctor:
 
 ## Run Claude Code in YOLO mode (bypass all permissions)
 yolo:
-	@if [ "$$(docker ps -q -f name=$(CONTAINER_NAME))" ]; then \
+	@if [ "$$($(DOCKER_COMPOSE) ps -q $(SERVICE_NAME))" ]; then \
 		echo "$(RED)⚠️  YOLO MODE: Running Claude Code with ALL permissions bypassed$(RESET)"; \
 		echo "$(YELLOW)Claude will execute all commands without asking for confirmation!$(RESET)"; \
 		echo ""; \
-		$(DOCKER_EXEC) -it $(CONTAINER_NAME) claude --dangerously-skip-permissions; \
+		$(DOCKER_EXEC) $(SERVICE_NAME) claude --dangerously-skip-permissions; \
 	else \
 		echo "$(RED)✗$(RESET) Container is not running. Start it with: make up"; \
 		exit 1; \
@@ -201,9 +201,9 @@ exec:
 		echo "$(RED)✗$(RESET) Please specify a command: make exec CMD=\"your-command\""; \
 		exit 1; \
 	fi
-	@if [ "$$(docker ps -q -f name=$(CONTAINER_NAME))" ]; then \
+	@if [ "$$($(DOCKER_COMPOSE) ps -q $(SERVICE_NAME))" ]; then \
 		echo "$(CYAN)Running: $(CMD)$(RESET)"; \
-		$(DOCKER_EXEC) $(CONTAINER_NAME) $(CMD); \
+		$(DOCKER_EXEC) $(SERVICE_NAME) $(CMD); \
 	else \
 		echo "$(RED)✗$(RESET) Container is not running. Start it with: make up"; \
 		exit 1; \

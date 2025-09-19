@@ -4,8 +4,7 @@ services:
       context: .
       args:
         USERNAME: node
-    image: claude-code-dev:latest
-    container_name: claude-dev
+    image: claude-code-dev-${PROJECT_NAME:-claude-docker}:latest
 
     stdin_open: true
     tty: true
