@@ -1,0 +1,54 @@
+services:
+  claude-dev:
+    build:
+      context: .
+      args:
+        USERNAME: node
+    image: claude-code-dev:latest
+    container_name: claude-dev
+
+    stdin_open: true
+    tty: true
+
+    volumes:
+      # Your workspace
+      - ./workspace:/workspace
+
+      # Mount the .claude directory (for credentials)
+      - ./claude-auth:/home/node/.claude
+
+      # Mount the entire home directory config
+      # This preserves .claude.json and other config files
+      - ./home-config:/home/node/config-backup
+
+      # Direct mount for .claude.json to ensure MCP configurations persist
+      - ./home-config/.claude.json:/home/node/.claude.json
+
+      # SSH Agent Forwarding - Auto-configured by Makefile based on platform
+      - ${SSH_MOUNT:-/dev/null:/dev/null}
+
+
+      # Mount MCP server configurations directory (user-level)
+      - ./mcp-servers:/home/node/.config/claude-code/mcp-servers
+
+    environment:
+      - USER=node
+      - GITHUB_USER=${GITHUB_USER}
+      - GITHUB_EMAIL=${GITHUB_EMAIL}
+
+      # SSH Agent Forwarding - Auto-configured by Makefile based on platform
+      - SSH_AUTH_SOCK=${SSH_SOCK}
+
+      # Add MCP-related API keys as needed
+      # These will be available for manual MCP configuration
+      - FIRECRAWL_API_KEY=${FIRECRAWL_API_KEY:-}
+      - UPSTASH_REDIS_REST_URL=${UPSTASH_REDIS_REST_URL:-}
+      - UPSTASH_REDIS_REST_TOKEN=${UPSTASH_REDIS_REST_TOKEN:-}
+
+    network_mode: host
+
+    deploy:
+      resources:
+        limits:
+          memory: 4G
+          cpus: '2.0'
