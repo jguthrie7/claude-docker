@@ -5,9 +5,8 @@ claude-auth/*
 workspace/*
 !workspace/.gitkeep
 
-# Environment variables and configuration
+# Environment variables
 .env
-claude-config.json
 
 # macOS metadata
 .DS_Store

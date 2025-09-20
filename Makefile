@@ -6,6 +6,12 @@ SERVICE_NAME := claude-dev
 DOCKER_COMPOSE := docker-compose
 DOCKER_EXEC := docker-compose exec
 
+# Generate unique project name: PROJECT_NAME + path hash for guaranteed isolation
+CURRENT_DIR := $(realpath $(CURDIR))
+PATH_HASH := $(shell echo "$(CURRENT_DIR)" | shasum -a 256 | cut -c1-8)
+PROJECT_NAME ?= claude-docker
+export COMPOSE_PROJECT_NAME := $(PROJECT_NAME)-$(PATH_HASH)
+
 # Platform detection for SSH forwarding
 UNAME_S := $(shell uname -s)
 ifeq ($(UNAME_S),Darwin)
@@ -80,12 +86,7 @@ init:
 	else \
 		echo "$(YELLOW)⚠$(RESET)  .env file already exists"; \
 	fi
-	@if [ ! -f claude-config.json ]; then \
-		echo '{"installMethod":"unknown","autoUpdates":true,"theme":"light"}' > claude-config.json && \
-		echo "$(GREEN)✓$(RESET) Created claude-config.json for Claude Code settings persistence"; \
-	else \
-		echo "$(YELLOW)⚠$(RESET)  claude-config.json already exists"; \
-	fi
+	@echo "$(GREEN)✓$(RESET) claude-config.json template already exists in repository"
 	@echo "$(GREEN)✓$(RESET) Setup complete. Edit .env file, then run: make up"
 
 ## Build the container from scratch

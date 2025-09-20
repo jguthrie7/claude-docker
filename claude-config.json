@@ -1,0 +1,25 @@
+{
+  "installMethod": "docker",
+  "autoUpdates": true,
+  "theme": "light",
+  "cachedStatsigGates": {
+    "tengu_disable_bypass_permissions_mode": false
+  },
+  "firstStartTime": "2025-09-20T18:35:39.251Z",
+  "projects": {
+    "/workspace": {
+      "allowedTools": [],
+      "history": [],
+      "mcpContextUris": [],
+      "mcpServers": {},
+      "enabledMcpjsonServers": [],
+      "disabledMcpjsonServers": [],
+      "hasTrustDialogAccepted": false,
+      "projectOnboardingSeenCount": 0,
+      "hasClaudeMdExternalIncludesApproved": false,
+      "hasClaudeMdExternalIncludesWarningShown": false
+    }
+  },
+  "userID": "6ec1fc998c5bf93e3a477705d4a2b5c454953cc04face86b2901f38e00962519",
+  "fallbackAvailableWarningThreshold": 0.5
+}
