@@ -16,10 +16,7 @@ This repository contains a Docker-based development environment for Claude Code,
 
 ### Directory Structure
 - `workspace/` - Main development workspace (mounted into container)
-- `claude-auth/` - Claude authentication and session data
-- `home-config/` - Backup location for user configurations
-- `ssh/` - SSH keys (mounted read-only for security)
-- `mcp-servers/` - MCP server configuration directory
+- `claude-auth/` - Claude runtime data directory (contains OAuth credentials, todos, projects, etc.)
 
 ## Initial Setup
 
@@ -36,10 +33,7 @@ This repository contains a Docker-based development environment for Claude Code,
      - Add your GitHub username/email (optional, enables automatic git configuration)
      - Add your Firecrawl API key from https://firecrawl.dev/
      - Add your Upstash Redis credentials from https://console.upstash.com/ (for Context7 MCP)
-   - Place your SSH keys in the `ssh/` directory:
-     ```bash
-     cp ~/.ssh/id_ed25519* ssh/
-     ```
+   - SSH access is provided via SSH agent forwarding (automatic - no setup needed)
 
 3. **Start the environment:**
    ```bash
@@ -91,9 +85,25 @@ The container automatically:
 - Installs Claude Code globally via npm
 - Sets up user permissions and sudo access
 - Configures fish shell
-- Restores `.claude.json` configuration if available
 - Configures git with your GitHub credentials (if provided)
-- Mounts workspace and authentication directories
+- Mounts workspace and Claude's data directory for persistent authentication
+
+### Authentication Persistence
+
+Authentication and configuration persist between container restarts through two files:
+
+1. **OAuth Credentials** (`claude-auth/.credentials.json`)
+   - Contains your Claude.ai OAuth tokens
+   - Created on first login with `/login` command
+   - Mounted to `~/.claude/.credentials.json` in container
+
+2. **Configuration State** (`claude-config.json`)
+   - Contains user ID, settings, project history, and session state
+   - Created automatically by Claude Code or during `make init`
+   - Mounted to `~/.claude.json` in container
+   - Ensures Claude Code recognizes you as the same user across restarts
+
+Both files are excluded from git to protect your personal data.
 
 ### Common Workflows
 
@@ -143,10 +153,10 @@ The environment supports MCP (Model Context Protocol) servers with persistent co
 - These files persist automatically as the workspace is mounted
 - Configuration is project-specific and version-controlled
 
-**User-level configuration:**
-- Configuration directory: `~/.config/claude-code/mcp-servers/` (now properly mounted)
-- Global MCP servers available across all projects
-- Place configurations in `./mcp-servers/` directory on the host
+**Container-level configuration:**
+- Use `claude mcp add` inside the container
+- Configurations persist in the mounted `claude-auth/` directory
+- Available across all projects in this container instance
 
 ### Setting Up MCP Servers
 
@@ -175,66 +185,59 @@ The environment supports MCP (Model Context Protocol) servers with persistent co
 
 2. **Enable specific servers in Claude Code:**
    - Use `claude config set enabledMcpjsonServers filesystem,context7`
-   - Or configure in your project's `.claude/settings.json`:
-     ```json
-     {
-       "enabledMcpjsonServers": ["filesystem", "context7"]
-     }
-     ```
 
 3. **API keys are passed via environment variables:**
    - Set in your `.env` file (already configured for Context7 and Firecrawl)
    - Environment variables are automatically available to MCP servers
 
+### Alternative: Container-level MCP Configuration
+
+1. **Using `claude mcp add` inside container:**
+   ```bash
+   make shell
+   claude mcp add context7 --env UPSTASH_REDIS_REST_URL=${UPSTASH_REDIS_REST_URL} \
+     --env UPSTASH_REDIS_REST_TOKEN=${UPSTASH_REDIS_REST_TOKEN} \
+     -- npx @context7/mcp-server
+   ```
+
+2. **These configurations persist in the mounted `claude-auth/` directory between container restarts**
+
 ### Configuration Persistence
 
-**MCP configuration persistence is now fully supported with two methods:**
-
-**Method 1: Using `claude mcp add` (Recommended)**
-- Run `claude mcp add <name> <command>` inside the container
-- Configurations are automatically persisted to `./home-config/.claude.json`
-- All MCP servers added this way persist between container restarts
-- Example:
-  ```bash
-  make shell
-  claude mcp add context7 --env UPSTASH_REDIS_REST_URL=${UPSTASH_REDIS_REST_URL} \
-    --env UPSTASH_REDIS_REST_TOKEN=${UPSTASH_REDIS_REST_TOKEN} \
-    -- npx @context7/mcp-server
-  ```
-
-**Method 2: Project-level .mcp.json files**
-- Create `.mcp.json` files in your workspace root (as shown in examples above)
-- Enable with: `claude config set enabledMcpjsonServers server1,server2`
-- Configurations are project-specific and version-controlled
-
-### Persistence Details
-
-MCP configuration persists properly between container restarts through:
-- **Direct mount**: `.claude.json` file directly mounted from `./home-config/`
+MCP configuration persists through:
 - **Workspace configs**: `.mcp.json` files persist automatically via workspace mount
-- **User-level configs**: MCP server directory mounted from `./mcp-servers/`
-- **Authentication**: Claude credentials persist in `./claude-auth/`
+- **Container configs**: MCP servers added with `claude mcp add` persist in `claude-auth/`
+- **Authentication**: Claude credentials persist in `claude-auth/`
 - **Environment variables**: Available in all sessions via `.env` file
-
-### Troubleshooting MCP Persistence
-
-If MCP servers disappear after restart:
-1. Check if servers were added with `claude mcp add` (these should persist)
-2. Verify `.claude.json` exists in `./home-config/` directory
-3. Run `claude mcp list` to see configured servers
-4. Check that environment variables are set in `.env` file
 
 ## Repository Structure
 
 This repository uses `.gitkeep` files to preserve directory structure while keeping sensitive data private:
 
+```
+claude-docker/
+├── workspace/           # Your code projects (not committed)
+├── claude-auth/         # Claude data & OAuth credentials (not committed)
+│   ├── .credentials.json  # OAuth tokens (created on first login)
+│   ├── todos/             # Task tracking data
+│   ├── projects/          # Project metadata
+│   └── ...                # Other Claude runtime data
+├── claude-config.json   # Claude configuration (user ID, settings) (not committed)
+├── .env                 # Environment variables (not committed)
+├── .env.example         # Template for environment setup
+├── docker-compose.yml   # Container configuration
+├── Dockerfile           # Container image definition
+├── Makefile            # Development commands
+└── CLAUDE.md           # This documentation
+```
+
 - **Committed to Git**: Directory structure, Docker configs, documentation
-- **Not Committed**: Personal SSH keys, API keys, authentication data, workspace files
-- **Setup Required**: Users must add their own `.env` file and SSH keys after cloning
+- **Not Committed**: API keys, authentication data, workspace files, Claude runtime data, user configuration
+- **Setup Required**: Users must add their own `.env` file after cloning (`.claude-config.json` is created automatically)
 
 ## Security Considerations
 
-- SSH keys mounted read-only
+- SSH access via secure agent forwarding (no keys copied to container)
 - User runs with non-root privileges but has sudo access
 - Authentication data persisted outside container
 - Environment variables for API keys (not committed to git)

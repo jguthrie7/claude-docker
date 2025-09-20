@@ -80,7 +80,13 @@ init:
 	else \
 		echo "$(YELLOW)⚠$(RESET)  .env file already exists"; \
 	fi
-	@echo "$(GREEN)✓$(RESET) Setup complete. Edit .env file, add SSH keys to ssh/, then run: make up"
+	@if [ ! -f claude-config.json ]; then \
+		echo '{"installMethod":"unknown","autoUpdates":true,"theme":"light"}' > claude-config.json && \
+		echo "$(GREEN)✓$(RESET) Created claude-config.json for Claude Code settings persistence"; \
+	else \
+		echo "$(YELLOW)⚠$(RESET)  claude-config.json already exists"; \
+	fi
+	@echo "$(GREEN)✓$(RESET) Setup complete. Edit .env file, then run: make up"
 
 ## Build the container from scratch
 build:

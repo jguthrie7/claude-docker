@@ -55,7 +55,7 @@ RUN mkdir -p /home/$USERNAME/.config/claude-code/mcp-servers && \
 # At the end of your Dockerfile, before CMD
 USER $USERNAME
 
-# Create entrypoint script to auto-configure git and restore .claude.json
+# Create simplified entrypoint script for git config and SSH setup
 RUN echo '#!/bin/bash\n\
 # Configure git if environment variables are provided\n\
 if [ -n "$GITHUB_USER" ]; then\n\
@@ -63,16 +63,6 @@ if [ -n "$GITHUB_USER" ]; then\n\
 fi\n\
 if [ -n "$GITHUB_EMAIL" ]; then\n\
   git config --global user.email "$GITHUB_EMAIL"\n\
-fi\n\
-\n\
-# Initialize .claude.json only on first run (if it doesn'\''t exist)\n\
-if [ -f /home/'$USERNAME'/config-backup/.claude.json ] && [ ! -f /home/'$USERNAME'/.claude.json ]; then\n\
-  cp /home/'$USERNAME'/config-backup/.claude.json /home/'$USERNAME'/.claude.json\n\
-fi\n\
-\n\
-# Fix SSH agent socket permissions if it exists\n\
-if [ -S /ssh-agent ]; then\n\
-  chown '$USERNAME':'$USERNAME' /ssh-agent\n\
 fi\n\
 \n\
 # Set up SSH directory and known hosts for seamless GitHub access\n\

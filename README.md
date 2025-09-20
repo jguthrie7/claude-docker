@@ -12,7 +12,7 @@ A containerized development environment for [Claude Code](https://claude.ai/code
 
 🔒 **Secure & Isolated**
 - Runs in Docker container with proper user permissions
-- SSH keys mounted read-only
+- SSH access via secure agent forwarding (no keys copied)
 - Authentication data persisted outside container
 
 🚀 **Easy to Use**

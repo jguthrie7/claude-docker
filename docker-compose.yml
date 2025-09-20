@@ -13,22 +13,14 @@ services:
       # Your workspace
       - ./workspace:/workspace
 
-      # Mount the .claude directory (for credentials)
+      # Mount the .claude directory (for credentials and data)
       - ./claude-auth:/home/node/.claude
 
-      # Mount the entire home directory config
-      # This preserves .claude.json and other config files
-      - ./home-config:/home/node/config-backup
-
-      # Direct mount for .claude.json to ensure MCP configurations persist
-      - ./home-config/.claude.json:/home/node/.claude.json
+      # Mount Claude Code configuration file (persists settings, user ID, project state)
+      - ./claude-config.json:/home/node/.claude.json
 
       # SSH Agent Forwarding - Auto-configured by Makefile based on platform
       - ${SSH_MOUNT:-/dev/null:/dev/null}
-
-
-      # Mount MCP server configurations directory (user-level)
-      - ./mcp-servers:/home/node/.config/claude-code/mcp-servers
 
     environment:
       - USER=node

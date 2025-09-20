@@ -2,15 +2,12 @@
 claude-auth/*
 !claude-auth/.gitkeep
 
-home-config/*
-!home-config/.gitkeep
-
-
 workspace/*
 !workspace/.gitkeep
 
-mcp-servers/*
-!mcp-servers/.gitkeep
-
-# Environment variables
+# Environment variables and configuration
 .env
+claude-config.json
+
+# macOS metadata
+.DS_Store
