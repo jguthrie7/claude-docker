@@ -57,6 +57,17 @@ USER $USERNAME
 
 # Create simplified entrypoint script for git config and SSH setup
 RUN echo '#!/bin/bash\n\
+# Fix hostname resolution for sudo\n\
+CURRENT_HOSTNAME=$(hostname)\n\
+if ! grep -q "$CURRENT_HOSTNAME" /etc/hosts 2>/dev/null; then\n\
+  echo "127.0.1.1 $CURRENT_HOSTNAME" | sudo tee -a /etc/hosts > /dev/null\n\
+fi\n\
+\n\
+# Fix SSH agent socket permissions if it exists\n\
+if [ -e /ssh-agent ]; then\n\
+  sudo chmod 666 /ssh-agent\n\
+fi\n\
+\n\
 # Configure git if environment variables are provided\n\
 if [ -n "$GITHUB_USER" ]; then\n\
   git config --global user.name "$GITHUB_USER"\n\

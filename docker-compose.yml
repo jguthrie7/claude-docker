@@ -5,6 +5,7 @@ services:
       args:
         USERNAME: node
     image: claude-code-dev-${PROJECT_NAME:-claude-docker}:latest
+    hostname: ${PROJECT_NAME:-claude-docker}
 
     stdin_open: true
     tty: true

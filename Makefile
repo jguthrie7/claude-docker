@@ -6,6 +6,12 @@ SERVICE_NAME := claude-dev
 DOCKER_COMPOSE := docker-compose
 DOCKER_EXEC := docker-compose exec
 
+# Load PROJECT_NAME from .env file if it exists
+ifneq (,$(wildcard .env))
+    include .env
+    export $(shell sed 's/=.*//' .env)
+endif
+
 # Generate unique project name: PROJECT_NAME + path hash for guaranteed isolation
 CURRENT_DIR := $(realpath $(CURDIR))
 PATH_HASH := $(shell echo "$(CURRENT_DIR)" | shasum -a 256 | cut -c1-8)
