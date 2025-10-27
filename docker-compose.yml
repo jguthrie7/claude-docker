@@ -37,7 +37,12 @@ services:
       - UPSTASH_REDIS_REST_URL=${UPSTASH_REDIS_REST_URL:-}
       - UPSTASH_REDIS_REST_TOKEN=${UPSTASH_REDIS_REST_TOKEN:-}
 
-    network_mode: host
+    # Port mappings for macOS (host networking doesn't work on macOS)
+    ports:
+      - "4321:4321"  # Astro dev server
+      - "3000:3000"  # Common dev server port
+      - "5173:5173"  # Vite dev server
+      - "8080:8080"  # Common app port
 
     deploy:
       resources:
