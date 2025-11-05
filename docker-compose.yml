@@ -34,15 +34,13 @@ services:
       # Add MCP-related API keys as needed
       # These will be available for manual MCP configuration
       - FIRECRAWL_API_KEY=${FIRECRAWL_API_KEY:-}
-      - UPSTASH_REDIS_REST_URL=${UPSTASH_REDIS_REST_URL:-}
-      - UPSTASH_REDIS_REST_TOKEN=${UPSTASH_REDIS_REST_TOKEN:-}
 
     # Port mappings for macOS (host networking doesn't work on macOS)
-    ports:
-      - "4321:4321"  # Astro dev server
-      - "3000:3000"  # Common dev server port
-      - "5173:5173"  # Vite dev server
-      - "8080:8080"  # Common app port
+#    ports:
+#      - "4321:4321"  # Astro dev server
+#      - "3000:3000"  # Common dev server port
+#      - "5173:5173"  # Vite dev server
+#      - "8080:8080"  # Common app port
 
     deploy:
       resources:
