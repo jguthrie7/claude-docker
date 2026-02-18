@@ -27,26 +27,28 @@ RUN echo "$USERNAME ALL=(ALL) NOPASSWD:ALL" >> /etc/sudoers && \
     mkdir -p /home/$USERNAME/.local/share && \
     chown -R $USERNAME:$USERNAME /home/$USERNAME
 
-# Install Claude Code globally (the only npm package we need)
-RUN npm install -g @anthropic-ai/claude-code
-
-# Fix npm global permissions for Claude Code auto-updates
-# ARG needs to be re-declared after FROM to be available in RUN commands
-ARG USERNAME
-RUN chown -R ${USERNAME}:${USERNAME} /usr/local
-
 # Create workspace with proper permissions
 RUN mkdir -p /workspace && \
     chown -R $USERNAME:$USERNAME /workspace
+
+# Create XDG runtime directory for fish shell (avoids "Runtime path not available" error)
+RUN mkdir -p /run/user/1000 && \
+    chown $USERNAME:$USERNAME /run/user/1000 && \
+    chmod 700 /run/user/1000
+ENV XDG_RUNTIME_DIR=/run/user/1000
+ENV PATH="/home/node/.local/bin:${PATH}"
 
 # Switch to the user
 USER $USERNAME
 WORKDIR /workspace
 
+# Install Claude Code using native installer (installs to ~/.local/bin)
+RUN curl -fsSL https://claude.ai/install.sh | bash
+
 # Set up fish configuration as the user
 RUN mkdir -p /home/$USERNAME/.config/fish && \
     mkdir -p /home/$USERNAME/.local/share/fish && \
-    echo "set -g fish_greeting ''" > /home/$USERNAME/.config/fish/config.fish
+    printf '%s\n' "set -g fish_greeting ''" "fish_add_path -g \$HOME/.local/bin" > /home/$USERNAME/.config/fish/config.fish
 
 # Create MCP servers directory structure for manual configuration
 RUN mkdir -p /home/$USERNAME/.config/claude-code/mcp-servers && \
@@ -89,6 +91,12 @@ EOL\n\
 \n\
 chmod 644 /home/'$USERNAME'/.ssh/known_hosts\n\
 chown -R '$USERNAME':'$USERNAME' /home/'$USERNAME'/.ssh\n\
+\n\
+# Configure MCP servers at user scope if not already configured\n\
+if ! claude mcp list --scope user 2>/dev/null | grep -q "context7"; then\n\
+  echo "Configuring Context7 MCP server..."\n\
+  claude mcp add context7 --scope user -- npx -y @upstash/context7-mcp@latest || true\n\
+fi\n\
 \n\
 exec "$@"' > /home/$USERNAME/entrypoint.sh && \
 chmod +x /home/$USERNAME/entrypoint.sh
