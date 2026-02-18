@@ -36,11 +36,13 @@ services:
       - FIRECRAWL_API_KEY=${FIRECRAWL_API_KEY:-}
 
     # Port mappings for macOS (host networking doesn't work on macOS)
-#    ports:
-#      - "4321:4321"  # Astro dev server
-#      - "3000:3000"  # Common dev server port
-#      - "5173:5173"  # Vite dev server
-#      - "8080:8080"  # Common app port
+    ports:
+      - "4321:4321"  # Astro dev server
+      - "3000:3000"  # Common dev server port
+      - "5173:5173"  # Vite dev server
+      - "8080:8080"  # Common app port
+      - "8787:8787"  # Wrangler dev server
+      - "8788:8788"  # Wrangler dev server (testing)
 
     deploy:
       resources:
