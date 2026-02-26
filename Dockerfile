@@ -14,6 +14,7 @@ RUN apt-get update && apt-get install -y \
     ripgrep \
     htop \
     tmux \
+    jq \
     fish \
     sudo \
     && rm -rf /var/lib/apt/lists/*
@@ -41,6 +42,9 @@ ENV PATH="/home/node/.local/bin:${PATH}"
 # Switch to the user
 USER $USERNAME
 WORKDIR /workspace
+
+# Install uv as the node user
+RUN curl -LsSf https://astral.sh/uv/install.sh | sh
 
 # Install Claude Code using native installer (installs to ~/.local/bin)
 RUN curl -fsSL https://claude.ai/install.sh | bash
@@ -96,6 +100,18 @@ chown -R '$USERNAME':'$USERNAME' /home/'$USERNAME'/.ssh\n\
 if ! claude mcp list --scope user 2>/dev/null | grep -q "context7"; then\n\
   echo "Configuring Context7 MCP server..."\n\
   claude mcp add context7 --scope user -- npx -y @upstash/context7-mcp@latest || true\n\
+fi\n\
+if ! claude mcp list --scope user 2>/dev/null | grep -q "reddit"; then\n\
+  echo "Configuring Reddit MCP server..."\n\
+  claude mcp add reddit --scope user -- uvx mcp-server-reddit || true\n\
+fi\n\
+if ! claude mcp list --scope user 2>/dev/null | grep -q "youtube"; then\n\
+  echo "Configuring YouTube MCP server..."\n\
+  claude mcp add youtube --scope user --transport stdio --env YOUTUBE_API_KEY="$YOUTUBE_API_KEY" -- npx -y @kirbah/mcp-youtube || true\n\
+fi\n\
+if ! claude mcp list --scope user 2>/dev/null | grep -q "playwright"; then\n\
+  echo "Configuring Playwright MCP server..."\n\
+  claude mcp add playwright --scope user -- npx @playwright/mcp@latest || true\n\
 fi\n\
 \n\
 exec "$@"' > /home/$USERNAME/entrypoint.sh && \

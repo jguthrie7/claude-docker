@@ -216,7 +216,7 @@ exec:
 	fi
 	@if [ "$$($(DOCKER_COMPOSE) ps -q $(SERVICE_NAME))" ]; then \
 		echo "$(CYAN)Running: $(CMD)$(RESET)"; \
-		$(DOCKER_EXEC) $(SERVICE_NAME) $(CMD); \
+		$(DOCKER_EXEC) -T $(SERVICE_NAME) $(CMD) </dev/null; \
 	else \
 		echo "$(RED)✗$(RESET) Container is not running. Start it with: make up"; \
 		exit 1; \
